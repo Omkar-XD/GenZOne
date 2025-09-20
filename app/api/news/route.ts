@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 
+// ✅ Correct way to define Next.js App Router API Route
 export async function GET() {
   try {
     const apiKey = process.env.GNEWS_API_KEY
@@ -10,19 +11,21 @@ export async function GET() {
           error: "API key not configured",
           articles: [],
         },
-        { status: 500 },
+        { status: 500 }
       )
     }
 
-    // Fetch Gen Z related news from gnews.io
+    // ✅ Using native fetch with caching correctly
     const response = await fetch(
       `https://gnews.io/api/v4/search?q="Gen Z" OR "generation z" OR "tiktok" OR "social media trends" OR "youth culture" OR "teen trends"&lang=en&country=us&max=8&apikey=${apiKey}`,
       {
+        // ⚡ Next.js App Router caching
+        next: { revalidate: 3600 },
+        // ✅ Good practice: add a User-Agent header to avoid 403
         headers: {
-          "User-Agent": "GenZOne/1.0",
+          "User-Agent": "GenZOne/1.0 (https://genzone.example)",
         },
-        next: { revalidate: 3600 }, // Cache for 1 hour
-      },
+      }
     )
 
     if (!response.ok) {
@@ -31,16 +34,18 @@ export async function GET() {
 
     const data = await response.json()
 
-    // Filter and format articles for Gen Z relevance
+    // ✅ Safely map articles
     const filteredArticles =
       data.articles?.map((article: any) => ({
-        title: article.title,
-        description: article.description,
-        url: article.url,
-        urlToImage: article.image,
-        publishedAt: article.publishedAt,
-        category: determineCategory(article.title + " " + article.description),
-        // ✅ Always include a source object to avoid undefined errors
+        title: article.title || "Untitled",
+        description: article.description || "No description available",
+        url: article.url || "#",
+        urlToImage: article.image || null,
+        publishedAt: article.publishedAt || new Date().toISOString(),
+        category: determineCategory(
+          `${article.title || ""} ${article.description || ""}`
+        ),
+        // ✅ Always provide a fallback for source
         source: {
           name: article.source?.name || "Unknown Source",
         },
@@ -48,12 +53,12 @@ export async function GET() {
 
     return NextResponse.json({
       articles: filteredArticles,
-      totalResults: data.totalArticles || 0,
+      totalResults: data.totalArticles || filteredArticles.length,
     })
   } catch (error) {
     console.error("News API Error:", error)
 
-    // ✅ Return fallback news with a source object
+    // ✅ Fallback data in case API fails
     return NextResponse.json({
       articles: [
         {
@@ -102,6 +107,7 @@ export async function GET() {
   }
 }
 
+// ✅ Simple category classifier
 function determineCategory(text: string): string {
   const lowerText = text.toLowerCase()
 
