@@ -8,9 +8,9 @@ import { Suspense } from "react"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "TrendSpot - AI-Powered Trend Discovery",
+  title: "GenZOne - AI-Powered Trend Discovery",
   description: "Discover what's trending before everyone else with AI-powered insights",
-  generator: "v0.app",
+    generator: "v0.app",
 }
 
 export default function RootLayout({
